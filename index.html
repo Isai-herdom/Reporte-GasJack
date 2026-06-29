@@ -188,6 +188,8 @@
             <th>TEMP.<br>DESCARGA</th>
             <th>CONF</th>
             <th>BARTHON</th>
+            <th>HORA DE PARO</th>
+            <th>HORA DE ARRANQUE</th>
             <th>OBSERVACIONES</th>
           </tr>
         </thead>
@@ -240,7 +242,7 @@ var HORAS = ['01:00','02:00','03:00','04:00','05:00','06:00',
              '07:00','08:00','09:00','10:00','11:00','12:00',
              '13:00','14:00','15:00','16:00','17:00','18:00',
              '19:00','20:00','21:00','22:00','23:00','00:00'];
-var COLS  = ['pdif','fplaca','pest','psuc','pdesc','rpm','tdesc','conf','barthon','obs'];
+var COLS  = ['pdif','fplaca','pest','psuc','pdesc','rpm','tdesc','conf','barthon','hparo','harranque','obs'];
 var RANGOS = {
   pdesc:{ min:0, max:1200 },
   psuc: { min:0, max:300  },
@@ -279,7 +281,7 @@ function buildTabla() {
       var td  = document.createElement('td');
       var inp = document.createElement('input');
       inp.type = 'text';
-      inp.className = 'param-input' + (col === 'obs' ? ' obs-inp' : '');
+      inp.className = 'param-input' + (col === 'obs' || col === 'hparo' || col === 'harranque' ? ' obs-inp' : '');
       inp.id = 'r-' + h.replace(':','') + '-' + col;
       inp.setAttribute('inputmode', col === 'obs' ? 'text' : 'decimal');
       if (RANGOS[col]) {
@@ -381,8 +383,12 @@ function guardarEnSheets(d) {
 
 // ── CONSTRUIR EMAIL HTML COMPLETO ────────────────────────────────────────────
 function buildEmailHTML(d) {
-  // Filas de la tabla
-  var filas = d.registros.map(function(r, i) {
+  // Filas de la tabla — solo las que tienen datos
+  var registrosFiltrados = d.registros.filter(function(r) {
+    return [r.pdif,r.fplaca,r.pest,r.psuc,r.pdesc,r.rpm,r.tdesc,r.conf,r.barthon,r.hparo,r.harranque]
+      .some(function(v){ return v && v !== '—' && String(v).trim() !== ''; });
+  });
+  var filas = registrosFiltrados.map(function(r, i) {
     var tieneData = [r.pdif,r.fplaca,r.pest,r.psuc,r.pdesc,r.rpm,r.tdesc,r.conf,r.barthon]
       .some(function(v){ return v && v !== '—'; });
     var bg  = i % 2 === 0 ? '#ffffff' : '#f9f9f9';
@@ -401,6 +407,8 @@ function buildEmailHTML(d) {
       '<td style="'+ts+'">'+v(r.tdesc)+'</td>' +
       '<td style="'+ts+'">'+v(r.conf)+'</td>' +
       '<td style="'+ts+'">'+v(r.barthon)+'</td>' +
+      '<td style="'+ts+'">'+v(r.hparo)+'</td>' +
+      '<td style="'+ts+'">'+v(r.harranque)+'</td>' +
       '<td style="'+os+'">'+v(r.obs)+'</td>' +
       '</tr>';
   }).join('');
@@ -457,7 +465,7 @@ function buildEmailHTML(d) {
   '<div style="font-size:10px;font-weight:700;color:#1a3a2a;letter-spacing:1.5px;text-transform:uppercase;border-bottom:2px solid #1a3a2a;padding-bottom:5px;margin-bottom:10px;">Parámetros de Operación</div>' +
   '<table width="100%" cellpadding="0" cellspacing="0" style="border-radius:4px;overflow:hidden;border:1px solid #e0e0e0;">' +
   '<tr style="background:#1a3a2a;">' +
-  th('HORA')+th('P.DIF')+th('F.PLACA')+th('P.EST')+th('P.SUC')+th('P.DESC')+th('RPM')+th('T.DESC')+th('CONF')+th('BARTHON') +
+  th('HORA')+th('P.DIF')+th('F.PLACA')+th('P.EST')+th('P.SUC')+th('P.DESC')+th('RPM')+th('T.DESC')+th('CONF')+th('BARTHON')+th('H.PARO')+th('H.ARRANQUE') +
   '<th style="padding:7px 6px;text-align:left;font-size:8px;font-weight:700;color:white;">OBS</th>' +
   '</tr>' + filas + '</table></td></tr>' +
 
